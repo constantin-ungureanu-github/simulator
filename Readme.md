@@ -10,4 +10,3 @@ sbt gen-idea:clean gen-idea
 sbt stage universal:packageBin
 
 ./target/universal/stage/bin/simulator 100 10000 1000000
-
