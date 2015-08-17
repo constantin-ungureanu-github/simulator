@@ -1,3 +1,5 @@
+package simulator.actors;
+
 import java.io.Serializable;
 
 import akka.actor.ActorRef;
@@ -119,7 +121,7 @@ public class Subscriber extends UntypedActor {
 
     public static final class DisconnectFromCell implements Serializable {
         private static final long serialVersionUID = 5346038999058973129L;
-        ActorRef cell;
+        private ActorRef cell;
 
         public DisconnectFromCell(ActorRef cell) {
             setCell(cell);
@@ -136,7 +138,7 @@ public class Subscriber extends UntypedActor {
 
     public static final class AckDisconnectFromCell implements Serializable {
         private static final long serialVersionUID = -6306573968601136056L;
-        ActorRef cell;
+        private ActorRef cell;
 
         public AckDisconnectFromCell(ActorRef cell) {
             setCell(cell);

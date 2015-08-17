@@ -1,3 +1,5 @@
+package simulator.actors;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +25,7 @@ public class Cell extends UntypedActor {
 
     public static final class ConnectSubscriber implements Serializable {
         private static final long serialVersionUID = 5394110819042126132L;
-        ActorRef subscriber;
+        private ActorRef subscriber;
 
         public ConnectSubscriber(ActorRef subscriber) {
             setSubscriber(subscriber);
@@ -40,7 +42,7 @@ public class Cell extends UntypedActor {
 
     public static final class DisconnectSubscriber implements Serializable {
         private static final long serialVersionUID = -7122625140056531246L;
-        ActorRef subscriber;
+        private ActorRef subscriber;
 
         public DisconnectSubscriber(ActorRef subscriber) {
             setSubscriber(subscriber);

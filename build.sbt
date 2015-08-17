@@ -9,4 +9,4 @@ libraryDependencies ++= Seq(
 )
 
 enablePlugins(JavaAppPackaging)
-mainClass in Compile := Some("Simulator")
+mainClass in Compile := Some("simulator.actors.Simulator")

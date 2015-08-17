@@ -1,3 +1,5 @@
+package simulator.actors;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,34 +14,24 @@ public class Master extends UntypedActor {
     private List<ActorRef> subscribers = new ArrayList<ActorRef>();
     private List<ActorRef> cells = new ArrayList<ActorRef>();
 
-    private long ackComplete;
-
     @Override
     public void onReceive(Object message) throws Exception {
         if (message instanceof Start) {
             startTime = System.currentTimeMillis();
-
             duration = ((Start) message).getDuration();
             cellsNumber = ((Start) message).getCellsNumber();
             subscribersNumber = ((Start) message).getSubscribersNumber();
 
-            for (long i = 0; i < cellsNumber; i++)
-                cells.add(context().system().actorOf(Props.create(Cell.class), "cell_" + i));
-
-            ackComplete += subscribersNumber;
-            Random random = new Random(cellsNumber);
-            for (long i = 0; i < subscribersNumber; i++) {
-                ActorRef subscriber = context().system().actorOf(Props.create(Subscriber.class), "subscriber_" + i);
-                subscribers.add(subscriber);
-                subscriber.tell(new Subscriber.ConnectToCell(cells.get(random.nextInt((int) cellsNumber))), getSelf());
-            }
+            addCells();
+            addSubscribers();
+            initializeSubscribers();
         } else if (message instanceof Stop) {
             long stopTime = System.currentTimeMillis();
             System.out.println("Finished after " + (stopTime - startTime) + " milliseconds.");
             System.exit(0);
         } else if (message instanceof Ping) {
-            ackComplete--;
-            if (ackComplete == 0) {
+            WorkStatus.getInstance().removeWork();
+            if (WorkStatus.getInstance().isWorkDone()) {
                 if (step < duration) {
                     step++;
                     getSender().tell(Tick.getInstance(), getSelf());
@@ -49,49 +41,73 @@ public class Master extends UntypedActor {
                 }
             }
         } else if (message instanceof Pong) {
-            ackComplete++;
+            WorkStatus.getInstance().addWork();
             getSender().tell(Ping.getInstance(), getSelf());
         } else if (message instanceof Tick) {
-            System.out.println(step);
-            ackComplete += subscribersNumber;
             Random random = new Random(subscribersNumber);
-            for (int i = 0; i < subscribersNumber; i++) {
-                subscribers.get(i).tell(new Subscriber.SendSMS(subscribers.get(random.nextInt((int) subscribersNumber))), getSelf());
-            }
+            WorkStatus.getInstance().addWork(subscribersNumber);
+            for (ActorRef subscriber : subscribers)
+                subscriber.tell(new Subscriber.SendSMS(subscribers.get(random.nextInt((int) subscribersNumber))), getSelf());
         } else {
             unhandled(message);
         }
     }
 
-    public static final class Ping implements Serializable {
-        private static final long serialVersionUID = 5592624326581846277L;
-        private static final Ping instance = new Ping();
-
-        private Ping() {
-        }
-
-        public static Ping getInstance() {
-            return instance;
-        }
+    private void addCells() {
+        for (long i = 0L; i < cellsNumber; i++)
+            cells.add(context().system().actorOf(Props.create(Cell.class), "cell_" + i));
     }
 
-    public static final class Pong implements Serializable {
-        private static final long serialVersionUID = -3249837482565376870L;
-        private static final Pong instance = new Pong();
+    private void addSubscribers() {
+        for (long i = 0L; i < subscribersNumber; i++)
+            subscribers.add(context().system().actorOf(Props.create(Subscriber.class), "subscriber_" + i));
+    }
 
-        private Pong() {
+    private void initializeSubscribers() {
+        Random random = new Random(cellsNumber);
+        WorkStatus.getInstance().addWork(subscribersNumber);
+        for (ActorRef subscriber : subscribers)
+            subscriber.tell(new Subscriber.ConnectToCell(cells.get(random.nextInt((int) cellsNumber))), getSelf());
+    }
+
+    private static final class WorkStatus {
+        private static final WorkStatus instance = new WorkStatus();
+        private long workLoad;
+
+        private WorkStatus() {
         }
 
-        public static Pong getInstance() {
+        static WorkStatus getInstance() {
             return instance;
+        }
+
+        boolean isWorkDone() {
+            return workLoad == 0;
+        }
+
+        void addWork(long workLoad) {
+            this.workLoad += workLoad;
+        }
+
+        void addWork() {
+            workLoad++;
+        }
+
+        void removeWork() {
+            workLoad--;
+        }
+
+        @SuppressWarnings("unused")
+        void removeWork(long workLoad) {
+            workLoad -= workLoad;
         }
     }
 
     public static final class Start implements Serializable {
         private static final long serialVersionUID = -5750159585853846166L;
-        long duration, cellsNumber, subscribersNumber;
+        private long duration, cellsNumber, subscribersNumber;
 
-        Start(long duration, long cellsNumber, long subscribersNumber) {
+        public Start(long duration, long cellsNumber, long subscribersNumber) {
             setDuration(duration);
             setCellsNumber(cellsNumber);
             setSubscribersNumber(subscribersNumber);
@@ -130,6 +146,30 @@ public class Master extends UntypedActor {
         }
 
         public static Stop getInstance() {
+            return instance;
+        }
+    }
+
+    public static final class Ping implements Serializable {
+        private static final long serialVersionUID = 5592624326581846277L;
+        private static final Ping instance = new Ping();
+
+        private Ping() {
+        }
+
+        public static Ping getInstance() {
+            return instance;
+        }
+    }
+
+    public static final class Pong implements Serializable {
+        private static final long serialVersionUID = -3249837482565376870L;
+        private static final Pong instance = new Pong();
+
+        private Pong() {
+        }
+
+        public static Pong getInstance() {
             return instance;
         }
     }
