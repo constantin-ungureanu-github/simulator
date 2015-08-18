@@ -46,8 +46,10 @@ public class Master extends UntypedActor {
         } else if (message instanceof Tick) {
             Random random = new Random(subscribersNumber);
             WorkStatus.getInstance().addWork(subscribersNumber);
-            for (ActorRef subscriber : subscribers)
-                subscriber.tell(new Subscriber.SendSMS(subscribers.get(random.nextInt((int) subscribersNumber))), getSelf());
+            for (ActorRef subscriber : subscribers) {
+//                subscriber.tell(new Subscriber.SendSMS(subscribers.get(random.nextInt((int) subscribersNumber))), getSelf());
+                subscriber.tell(new Subscriber.MakeVoiceCall(subscribers.get(random.nextInt((int) subscribersNumber))), getSelf());
+            }
         } else {
             unhandled(message);
         }

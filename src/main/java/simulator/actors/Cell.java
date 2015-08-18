@@ -13,8 +13,10 @@ public class Cell extends UntypedActor {
     @Override
     public void onReceive(Object message) throws Exception {
         if (message instanceof ConnectSubscriber) {
-            subscribers.add(((ConnectSubscriber) message).getSubscriber());
-            ((ConnectSubscriber) message).getSubscriber().tell(new Subscriber.AckConnectToCell(getSelf()), getSender());
+            ActorRef subscriber = ((ConnectSubscriber) message).getSubscriber();
+            subscribers.add(subscriber);
+            subscriber.tell(new Subscriber.AckConnectToCell(getSelf()), getSender());
+//            subscriber.tell(new Subscriber.AckConnectToCell(getSelf()), getSender());
         } else if (message instanceof DisconnectSubscriber) {
             subscribers.remove(((DisconnectSubscriber) message).getSubscriber());
             ((ConnectSubscriber) message).getSubscriber().tell(new Subscriber.AckDisconnectFromCell(getSelf()), getSelf());
