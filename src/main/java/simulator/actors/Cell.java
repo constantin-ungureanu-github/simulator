@@ -6,19 +6,17 @@ import java.util.List;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 
 public class Cell extends UntypedActor {
-    private List<ActorRef> subscribers = new ArrayList<ActorRef>();
+    LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
     @Override
     public void onReceive(Object message) throws Exception {
         if (message instanceof ConnectSubscriber) {
-            ActorRef subscriber = ((ConnectSubscriber) message).getSubscriber();
-            subscribers.add(subscriber);
-            subscriber.tell(new Subscriber.AckConnectToCell(getSelf()), getSender());
-//            subscriber.tell(new Subscriber.AckConnectToCell(getSelf()), getSender());
+            ((ConnectSubscriber) message).getSubscriber().tell(new Subscriber.AckConnectToCell(getSelf()), getSender());
         } else if (message instanceof DisconnectSubscriber) {
-            subscribers.remove(((DisconnectSubscriber) message).getSubscriber());
             ((ConnectSubscriber) message).getSubscriber().tell(new Subscriber.AckDisconnectFromCell(getSelf()), getSelf());
         } else {
             unhandled(message);

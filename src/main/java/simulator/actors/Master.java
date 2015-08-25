@@ -8,15 +8,21 @@ import java.util.Random;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 
 public class Master extends UntypedActor {
     private long step, startTime, duration, cellsNumber, subscribersNumber;
     private List<ActorRef> subscribers = new ArrayList<ActorRef>();
     private List<ActorRef> cells = new ArrayList<ActorRef>();
 
+    LoggingAdapter log = Logging.getLogger(getContext().system(), this);
+    Random random = new Random();
+
     @Override
     public void onReceive(Object message) throws Exception {
         if (message instanceof Start) {
+            log.info("Simulation started.");
             startTime = System.currentTimeMillis();
             duration = ((Start) message).getDuration();
             cellsNumber = ((Start) message).getCellsNumber();
@@ -27,8 +33,8 @@ public class Master extends UntypedActor {
             initializeSubscribers();
         } else if (message instanceof Stop) {
             long stopTime = System.currentTimeMillis();
-            System.out.println("Finished after " + (stopTime - startTime) + " milliseconds.");
-            System.exit(0);
+            log.info("Simulation completed after {} milliseconds.", stopTime - startTime);
+            getContext().system().shutdown();
         } else if (message instanceof Ping) {
             WorkStatus.getInstance().removeWork();
             if (WorkStatus.getInstance().isWorkDone()) {
@@ -44,12 +50,9 @@ public class Master extends UntypedActor {
             WorkStatus.getInstance().addWork();
             getSender().tell(Ping.getInstance(), getSelf());
         } else if (message instanceof Tick) {
-            Random random = new Random(subscribersNumber);
+            log.info("{}", step);
             WorkStatus.getInstance().addWork(subscribersNumber);
-            for (ActorRef subscriber : subscribers) {
-//                subscriber.tell(new Subscriber.SendSMS(subscribers.get(random.nextInt((int) subscribersNumber))), getSelf());
-                subscriber.tell(new Subscriber.MakeVoiceCall(subscribers.get(random.nextInt((int) subscribersNumber))), getSelf());
-            }
+            subscribers.stream().forEach(subscriber -> subscriber.tell(new Subscriber.MakeVoiceCall(subscribers.get(random.nextInt((int) subscribersNumber))), getSelf()));
         } else {
             unhandled(message);
         }
@@ -66,10 +69,8 @@ public class Master extends UntypedActor {
     }
 
     private void initializeSubscribers() {
-        Random random = new Random(cellsNumber);
         WorkStatus.getInstance().addWork(subscribersNumber);
-        for (ActorRef subscriber : subscribers)
-            subscriber.tell(new Subscriber.ConnectToCell(cells.get(random.nextInt((int) cellsNumber))), getSelf());
+        subscribers.stream().forEach(subscriber -> subscriber.tell(new Subscriber.ConnectToCell(cells.get(random.nextInt((int) cellsNumber))), getSelf()));
     }
 
     private static final class WorkStatus {

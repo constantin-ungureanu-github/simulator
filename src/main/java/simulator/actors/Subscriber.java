@@ -4,9 +4,13 @@ import java.io.Serializable;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 
 public class Subscriber extends UntypedActor {
     private ActorRef cell;
+
+    LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
     @Override
     public void onReceive(Object message) throws Exception {
@@ -34,6 +38,7 @@ public class Subscriber extends UntypedActor {
         } else if (message instanceof MakeVoiceCall) {
             ((MakeVoiceCall) message).getSubscriber().tell(new ReceiveVoiceCall(getSelf()), getSender());
         } else if (message instanceof AckMakeVoiceCall) {
+//            log.info("Message Received {}", message);
         	getSender().tell(Master.Ping.getInstance(), getSender());
         } else if (message instanceof NAckMakeVoiceCall) {
         	getSender().tell(Master.Ping.getInstance(), getSender());
