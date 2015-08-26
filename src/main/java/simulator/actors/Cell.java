@@ -1,8 +1,8 @@
 package simulator.actors;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
@@ -10,14 +10,20 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
 public class Cell extends UntypedActor {
+    private Set<ActorRef> subscribers = new HashSet<>();
+
     LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
     @Override
     public void onReceive(Object message) throws Exception {
         if (message instanceof ConnectSubscriber) {
-            ((ConnectSubscriber) message).getSubscriber().tell(new Subscriber.AckConnectToCell(getSelf()), getSender());
+            ActorRef subscriber = ((ConnectSubscriber) message).getSubscriber();
+            subscribers.add(subscriber);
+            subscriber.tell(new Subscriber.AckConnectToCell(getSelf()), getSender());
         } else if (message instanceof DisconnectSubscriber) {
-            ((ConnectSubscriber) message).getSubscriber().tell(new Subscriber.AckDisconnectFromCell(getSelf()), getSelf());
+            ActorRef subscriber = ((ConnectSubscriber) message).getSubscriber();
+            subscribers.remove(subscriber);
+            subscriber.tell(new Subscriber.AckDisconnectFromCell(getSelf()), getSelf());
         } else {
             unhandled(message);
         }

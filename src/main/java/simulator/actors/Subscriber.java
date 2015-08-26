@@ -15,7 +15,7 @@ public class Subscriber extends UntypedActor {
     @Override
     public void onReceive(Object message) throws Exception {
         if (message instanceof ConnectToCell) {
-        	((ConnectToCell) message).getCell().tell(new Cell.ConnectSubscriber(getSelf()), getSender());
+            ((ConnectToCell) message).getCell().tell(new Cell.ConnectSubscriber(getSelf()), getSender());
         } else if (message instanceof AckConnectToCell) {
         	setCell(((AckConnectToCell) message).getCell());
         	getSender().tell(Master.Ping.getInstance(), getSender());
