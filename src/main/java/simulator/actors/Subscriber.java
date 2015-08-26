@@ -10,7 +10,7 @@ import akka.event.LoggingAdapter;
 public class Subscriber extends UntypedActor {
     private ActorRef cell;
 
-    LoggingAdapter log = Logging.getLogger(getContext().system(), this);
+    LoggingAdapter log = Logging.getLogger(getContext().system(), Subscriber.class.getName());
 
     @Override
     public void onReceive(Object message) throws Exception {

@@ -12,7 +12,7 @@ import akka.event.LoggingAdapter;
 public class Cell extends UntypedActor {
     private Set<ActorRef> subscribers = new HashSet<>();
 
-    LoggingAdapter log = Logging.getLogger(getContext().system(), this);
+    LoggingAdapter log = Logging.getLogger(getContext().system(), Cell.class.getName());
 
     @Override
     public void onReceive(Object message) throws Exception {

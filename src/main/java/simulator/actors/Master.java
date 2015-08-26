@@ -15,9 +15,9 @@ public class Master extends UntypedActor {
     private long step, startTime, duration, cellsNumber, subscribersNumber;
     private List<ActorRef> subscribers = new ArrayList<ActorRef>();
     private List<ActorRef> cells = new ArrayList<ActorRef>();
+    private Random random = new Random();
 
-    LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-    Random random = new Random();
+    LoggingAdapter log = Logging.getLogger(getContext().system(), Master.class.getName());
 
     @Override
     public void onReceive(Object message) throws Exception {
