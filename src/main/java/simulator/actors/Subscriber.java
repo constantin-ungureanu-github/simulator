@@ -10,41 +10,40 @@ import akka.event.LoggingAdapter;
 public class Subscriber extends UntypedActor {
     private ActorRef cell;
 
-    LoggingAdapter log = Logging.getLogger(getContext().system(), Subscriber.class.getName());
+    LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
     @Override
     public void onReceive(Object message) throws Exception {
         if (message instanceof ConnectToCell) {
-            ((ConnectToCell) message).getCell().tell(new Cell.ConnectSubscriber(getSelf()), getSender());
+            getSender().tell(Cell.ConnectSubscriber.getInstance(), getSelf());
         } else if (message instanceof AckConnectToCell) {
-        	setCell(((AckConnectToCell) message).getCell());
-        	getSender().tell(Master.Ping.getInstance(), getSender());
+        	setCell(getSender());
+        	Master.getMaster().tell(Master.Ping.getInstance(), getSelf());
         } else if (message instanceof NAckConnectToCell) {
-        	getSender().tell(Master.Ping.getInstance(), getSender());
+            setCell(null);
+            Master.getMaster().tell(Master.Ping.getInstance(), getSelf());
         } else if (message instanceof DisconnectFromCell) {
-        	setCell(null);
-        	getCell().tell(new Cell.DisconnectSubscriber(getSelf()), getSender());
+            getCell().tell(Cell.DisconnectSubscriber.getInstance(), getSelf());
         } else if (message instanceof AckDisconnectFromCell) {
-        	getSender().tell(Master.Ping.getInstance(), getSender());
+            setCell(null);
+            Master.getMaster().tell(Master.Ping.getInstance(), getSelf());
         } else if (message instanceof SendSMS) {
-            ((SendSMS) message).getSubscriber().tell(new ReceiveSMS(getSelf()), getSender());
+            getSender().tell(ReceiveSMS.getInstance(), getSelf());
         } else if (message instanceof AckSendSMS) {
-        	getSender().tell(Master.Ping.getInstance(), getSender());
+            Master.getMaster().tell(Master.Ping.getInstance(), getSelf());
         } else if (message instanceof NAckSendSMS) {
-        	getSender().tell(Master.Ping.getInstance(), getSender());
+            Master.getMaster().tell(Master.Ping.getInstance(), getSelf());
         } else if (message instanceof ReceiveSMS) {
-        	((ReceiveSMS) message).getSubscriber().tell(new AckSendSMS(getSelf()), getSender());
-//        	((ReceiveSMS) message).getSubscriber().tell(new NAckSendSMS(getSelf()), getSender());
+            getSender().tell(AckSendSMS.getInstance(), getSelf());
         } else if (message instanceof MakeVoiceCall) {
-            ((MakeVoiceCall) message).getSubscriber().tell(new ReceiveVoiceCall(getSelf()), getSender());
+            getSender().tell(ReceiveVoiceCall.getInstance(), getSelf());
         } else if (message instanceof AckMakeVoiceCall) {
-//            log.info("Message Received {}", message);
-        	getSender().tell(Master.Ping.getInstance(), getSender());
+            log.info("{}", message);
+            Master.getMaster().tell(Master.Ping.getInstance(), getSelf());
         } else if (message instanceof NAckMakeVoiceCall) {
-        	getSender().tell(Master.Ping.getInstance(), getSender());
+            Master.getMaster().tell(Master.Ping.getInstance(), getSelf());
         } else if (message instanceof ReceiveVoiceCall) {
-        	((ReceiveVoiceCall) message).getSubscriber().tell(new AckMakeVoiceCall(getSelf()), getSender());
-//        	((ReceiveVoiceCall) message).getSubscriber().tell(new NAckMakeVoiceCall(getSelf()), getSender());
+            getSender().tell(AckMakeVoiceCall.getInstance(), getSelf());
         } else {
             unhandled(message);
         }
@@ -60,222 +59,157 @@ public class Subscriber extends UntypedActor {
 
 	public static final class ConnectToCell implements Serializable {
         private static final long serialVersionUID = -1690119546167038359L;
-        private ActorRef cell;
+        private static ConnectToCell instance = new ConnectToCell();
 
-        public ConnectToCell(ActorRef cell) {
-            setCell(cell);
+        private ConnectToCell() {
         }
 
-        public ActorRef getCell() {
-            return cell;
-        }
-
-        public void setCell(ActorRef cell) {
-            this.cell = cell;
+        public static ConnectToCell getInstance() {
+            return instance;
         }
     }
 
     public static final class AckConnectToCell implements Serializable {
         private static final long serialVersionUID = 5279648322574152683L;
-        private ActorRef cell;
+        private static AckConnectToCell instance = new AckConnectToCell();
 
-        public AckConnectToCell(ActorRef cell) {
-            setCell(cell);
+        private AckConnectToCell() {
         }
 
-        public ActorRef getCell() {
-            return cell;
-        }
-
-        public void setCell(ActorRef cell) {
-            this.cell = cell;
+        public static AckConnectToCell getInstance() {
+            return instance;
         }
     }
 
     public static final class NAckConnectToCell implements Serializable {
 		private static final long serialVersionUID = -5756205205881084882L;
-		private ActorRef cell;
+		private static NAckConnectToCell instance = new NAckConnectToCell();
 
-        public NAckConnectToCell(ActorRef cell) {
-            setCell(cell);
+		private NAckConnectToCell() {
         }
 
-        public ActorRef getCell() {
-            return cell;
-        }
-
-        public void setCell(ActorRef cell) {
-            this.cell = cell;
+        public static NAckConnectToCell getInstance() {
+            return instance;
         }
     }
 
     public static final class DisconnectFromCell implements Serializable {
         private static final long serialVersionUID = 5346038999058973129L;
-        private ActorRef cell;
+        private static DisconnectFromCell instance = new DisconnectFromCell();
 
-        public DisconnectFromCell(ActorRef cell) {
-            setCell(cell);
+        private DisconnectFromCell() {
         }
 
-        public ActorRef getCell() {
-            return cell;
-        }
-
-        public void setCell(ActorRef cell) {
-            this.cell = cell;
+        public static DisconnectFromCell getInstance() {
+            return instance;
         }
     }
 
     public static final class AckDisconnectFromCell implements Serializable {
         private static final long serialVersionUID = -6306573968601136056L;
-        private ActorRef cell;
+        private static AckDisconnectFromCell instance = new AckDisconnectFromCell();
 
-        public AckDisconnectFromCell(ActorRef cell) {
-            setCell(cell);
+        private AckDisconnectFromCell() {
         }
 
-        public ActorRef getCell() {
-            return cell;
-        }
-
-        public void setCell(ActorRef cell) {
-            this.cell = cell;
+        public static AckDisconnectFromCell getInstance() {
+            return instance;
         }
     }
 
     public static final class SendSMS implements Serializable {
         private static final long serialVersionUID = 2789066518138474943L;
-        private ActorRef subscriber;
+        private static SendSMS instance = new SendSMS();
 
-        public SendSMS(ActorRef subscriber) {
-            setSubscriber(subscriber);
+        private SendSMS() {
         }
 
-        public ActorRef getSubscriber() {
-            return subscriber;
-        }
-
-        public void setSubscriber(ActorRef subscriber) {
-            this.subscriber = subscriber;
+        public static SendSMS getInstance() {
+            return instance;
         }
     }
 
     public static final class AckSendSMS implements Serializable {
 		private static final long serialVersionUID = -6073036744404507432L;
-		private ActorRef subscriber;
+		private static AckSendSMS instance = new AckSendSMS();
 
-        public AckSendSMS(ActorRef subscriber) {
-            setSubscriber(subscriber);
+		private AckSendSMS() {
         }
 
-        public ActorRef getSubscriber() {
-            return subscriber;
-        }
-
-        public void setSubscriber(ActorRef subscriber) {
-            this.subscriber = subscriber;
+        public static AckSendSMS getInstance() {
+            return instance;
         }
     }
 
     public static final class NAckSendSMS implements Serializable {
 		private static final long serialVersionUID = -5162774852791267920L;
-		private ActorRef subscriber;
+		private static NAckSendSMS instance = new NAckSendSMS();
 
-        public NAckSendSMS(ActorRef subscriber) {
-            setSubscriber(subscriber);
+		private NAckSendSMS() {
         }
 
-        public ActorRef getSubscriber() {
-            return subscriber;
-        }
-
-        public void setSubscriber(ActorRef subscriber) {
-            this.subscriber = subscriber;
+        public static NAckSendSMS getInstance() {
+            return instance;
         }
     }
 
     public static final class ReceiveSMS implements Serializable {
         private static final long serialVersionUID = -6793909914988975328L;
-        private ActorRef subscriber;
+        private static ReceiveSMS instance = new ReceiveSMS();
 
-        public ReceiveSMS(ActorRef subscriber) {
-            setSubscriber(subscriber);
+        private ReceiveSMS() {
         }
 
-        public ActorRef getSubscriber() {
-            return subscriber;
-        }
-
-        public void setSubscriber(ActorRef subscriber) {
-            this.subscriber = subscriber;
+        public static ReceiveSMS getInstance() {
+            return instance;
         }
     }
 
     public static final class MakeVoiceCall implements Serializable {
         private static final long serialVersionUID = -8377483922930960660L;
-        private ActorRef subscriber;
+        private static MakeVoiceCall instance = new MakeVoiceCall();
 
-        public MakeVoiceCall(ActorRef subscriber) {
-        	setSubscriber(subscriber);
+        private MakeVoiceCall() {
         }
 
-		public ActorRef getSubscriber() {
-			return subscriber;
-		}
-
-		public void setSubscriber(ActorRef subscriber) {
-			this.subscriber = subscriber;
-		}
+        public static MakeVoiceCall getInstance() {
+            return instance;
+        }
     }
 
     public static final class AckMakeVoiceCall implements Serializable {
 		private static final long serialVersionUID = -1398871624346829811L;
-        private ActorRef subscriber;
+        private static AckMakeVoiceCall instance = new AckMakeVoiceCall();
 
-        public AckMakeVoiceCall(ActorRef subscriber) {
-        	setSubscriber(subscriber);
+        private AckMakeVoiceCall() {
         }
 
-		public ActorRef getSubscriber() {
-			return subscriber;
-		}
-
-		public void setSubscriber(ActorRef subscriber) {
-			this.subscriber = subscriber;
-		}
+        public static AckMakeVoiceCall getInstance() {
+            return instance;
+        }
     }
 
     public static final class NAckMakeVoiceCall implements Serializable {
 		private static final long serialVersionUID = 4341146802258145251L;
-		private ActorRef subscriber;
+		private static NAckMakeVoiceCall instance = new NAckMakeVoiceCall();
 
-        public NAckMakeVoiceCall(ActorRef subscriber) {
-        	setSubscriber(subscriber);
+		private NAckMakeVoiceCall() {
         }
 
-		public ActorRef getSubscriber() {
-			return subscriber;
-		}
-
-		public void setSubscriber(ActorRef subscriber) {
-			this.subscriber = subscriber;
-		}
+        public static NAckMakeVoiceCall getInstance() {
+            return instance;
+        }
     }
 
     public static final class ReceiveVoiceCall implements Serializable {
 		private static final long serialVersionUID = -6986997443922771902L;
-		private ActorRef subscriber;
+		private static ReceiveVoiceCall instance = new ReceiveVoiceCall();
 
-        public ReceiveVoiceCall(ActorRef subscriber) {
-        	setSubscriber(subscriber);
+        private ReceiveVoiceCall() {
         }
 
-		public ActorRef getSubscriber() {
-			return subscriber;
-		}
-
-		public void setSubscriber(ActorRef subscriber) {
-			this.subscriber = subscriber;
-		}
+        public static ReceiveVoiceCall getInstance() {
+            return instance;
+        }
     }
 }

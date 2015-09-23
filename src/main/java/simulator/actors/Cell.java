@@ -12,18 +12,16 @@ import akka.event.LoggingAdapter;
 public class Cell extends UntypedActor {
     private Set<ActorRef> subscribers = new HashSet<>();
 
-    LoggingAdapter log = Logging.getLogger(getContext().system(), Cell.class.getName());
+    LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
     @Override
     public void onReceive(Object message) throws Exception {
         if (message instanceof ConnectSubscriber) {
-            ActorRef subscriber = ((ConnectSubscriber) message).getSubscriber();
-            subscribers.add(subscriber);
-            subscriber.tell(new Subscriber.AckConnectToCell(getSelf()), getSender());
+            subscribers.add(getSender());
+            getSender().tell(Subscriber.AckConnectToCell.getInstance(), getSelf());
         } else if (message instanceof DisconnectSubscriber) {
-            ActorRef subscriber = ((ConnectSubscriber) message).getSubscriber();
-            subscribers.remove(subscriber);
-            subscriber.tell(new Subscriber.AckDisconnectFromCell(getSelf()), getSelf());
+            subscribers.remove(getSender());
+            getSender().tell(Subscriber.AckDisconnectFromCell.getInstance(), getSelf());
         } else {
             unhandled(message);
         }
@@ -31,35 +29,24 @@ public class Cell extends UntypedActor {
 
     public static final class ConnectSubscriber implements Serializable {
         private static final long serialVersionUID = 5394110819042126132L;
-        private ActorRef subscriber;
+        private static ConnectSubscriber instance = new ConnectSubscriber();
 
-        public ConnectSubscriber(ActorRef subscriber) {
-            setSubscriber(subscriber);
-        }
+        private ConnectSubscriber() {}
 
-        public ActorRef getSubscriber() {
-            return subscriber;
-        }
-
-        public void setSubscriber(ActorRef subscriber) {
-            this.subscriber = subscriber;
+        public static ConnectSubscriber getInstance() {
+            return instance;
         }
     }
 
     public static final class DisconnectSubscriber implements Serializable {
         private static final long serialVersionUID = -7122625140056531246L;
-        private ActorRef subscriber;
+        private static DisconnectSubscriber instance = new DisconnectSubscriber();
 
-        public DisconnectSubscriber(ActorRef subscriber) {
-            setSubscriber(subscriber);
+        private DisconnectSubscriber() {
         }
 
-        public ActorRef getSubscriber() {
-            return subscriber;
-        }
-
-        public void setSubscriber(ActorRef subscriber) {
-            this.subscriber = subscriber;
+        public static DisconnectSubscriber getInstance() {
+            return instance;
         }
     }
 }

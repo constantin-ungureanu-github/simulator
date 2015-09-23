@@ -10,20 +10,26 @@ import akka.actor.Props;
 import akka.actor.UntypedActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import simulator.actors.Subscriber.ConnectToCell;
+import simulator.actors.Subscriber.MakeVoiceCall;
 
 public class Master extends UntypedActor {
+    private static ActorRef master;
+
     private long step, startTime, duration, cellsNumber, subscribersNumber;
     private List<ActorRef> subscribers = new ArrayList<ActorRef>();
     private List<ActorRef> cells = new ArrayList<ActorRef>();
     private Random random = new Random();
 
-    LoggingAdapter log = Logging.getLogger(getContext().system(), Master.class.getName());
+    LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
     @Override
     public void onReceive(Object message) throws Exception {
         if (message instanceof Start) {
             log.info("Simulation started.");
             startTime = System.currentTimeMillis();
+
+            master = getSelf();
             duration = ((Start) message).getDuration();
             cellsNumber = ((Start) message).getCellsNumber();
             subscribersNumber = ((Start) message).getSubscribersNumber();
@@ -34,16 +40,18 @@ public class Master extends UntypedActor {
         } else if (message instanceof Stop) {
             long stopTime = System.currentTimeMillis();
             log.info("Simulation completed after {} milliseconds.", stopTime - startTime);
-            getContext().system().shutdown();
+            getContext().system().terminate();
+//            getContext().system().shutdown();
+//            getContext().system().awaitTermination();
         } else if (message instanceof Ping) {
             WorkStatus.getInstance().removeWork();
             if (WorkStatus.getInstance().isWorkDone()) {
                 if (step < duration) {
                     step++;
-                    getSender().tell(Tick.getInstance(), getSelf());
-                    getSender().tell(Pong.getInstance(), getSelf());
+                    getSelf().tell(Tick.getInstance(), getSelf());
+                    getSelf().tell(Pong.getInstance(), getSelf());
                 } else {
-                    getSender().tell(Stop.getInstance(), getSelf());
+                    getSelf().tell(Stop.getInstance(), getSelf());
                 }
             }
         } else if (message instanceof Pong) {
@@ -52,10 +60,14 @@ public class Master extends UntypedActor {
         } else if (message instanceof Tick) {
             log.info("{}", step);
             WorkStatus.getInstance().addWork(subscribersNumber);
-            subscribers.stream().forEach(subscriber -> subscriber.tell(new Subscriber.MakeVoiceCall(subscribers.get(random.nextInt((int) subscribersNumber))), getSelf()));
+            subscribers.stream().forEach(subscriber -> subscriber.tell(MakeVoiceCall.getInstance(), subscribers.get(random.nextInt((int) subscribersNumber))));
         } else {
             unhandled(message);
         }
+    }
+
+    public static ActorRef getMaster() {
+        return master;
     }
 
     private void addCells() {
@@ -70,7 +82,7 @@ public class Master extends UntypedActor {
 
     private void initializeSubscribers() {
         WorkStatus.getInstance().addWork(subscribersNumber);
-        subscribers.stream().forEach(subscriber -> subscriber.tell(new Subscriber.ConnectToCell(cells.get(random.nextInt((int) cellsNumber))), getSelf()));
+        subscribers.stream().forEach(subscriber -> subscriber.tell(ConnectToCell.getInstance(), cells.get(random.nextInt((int) cellsNumber))));
     }
 
     private static final class WorkStatus {
