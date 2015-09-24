@@ -3,7 +3,7 @@ package simulator.actors;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.logging.log4j.core.async.AsyncLogger;
 import org.slf4j.Logger;
@@ -21,7 +21,6 @@ public class Master extends UntypedActor {
     private long step, startTime, duration, cellsNumber, subscribersNumber;
     private List<ActorRef> subscribers = new ArrayList<ActorRef>();
     private List<ActorRef> cells = new ArrayList<ActorRef>();
-    private Random random = new Random();
 
     private static Logger log = LoggerFactory.getLogger(Master.class);
 
@@ -61,7 +60,7 @@ public class Master extends UntypedActor {
         } else if (message instanceof Tick) {
             log.info("{}", step);
             WorkStatus.getInstance().addWork(subscribersNumber);
-            subscribers.stream().forEach(subscriber -> subscriber.tell(MakeVoiceCall.getInstance(), subscribers.get(random.nextInt((int) subscribersNumber))));
+            subscribers.stream().forEach(subscriber -> subscriber.tell(MakeVoiceCall.getInstance(), subscribers.get(ThreadLocalRandom.current().nextInt((int) subscribersNumber))));
         } else {
             unhandled(message);
         }
@@ -83,7 +82,7 @@ public class Master extends UntypedActor {
 
     private void initializeSubscribers() {
         WorkStatus.getInstance().addWork(subscribersNumber);
-        subscribers.stream().forEach(subscriber -> subscriber.tell(ConnectToCell.getInstance(), cells.get(random.nextInt((int) cellsNumber))));
+        subscribers.stream().forEach(subscriber -> subscriber.tell(ConnectToCell.getInstance(), cells.get(ThreadLocalRandom.current().nextInt((int) cellsNumber))));
     }
 
     private static final class WorkStatus {
