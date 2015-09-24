@@ -6,13 +6,9 @@ import java.util.Set;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
 
 public class Cell extends UntypedActor {
     private Set<ActorRef> subscribers = new HashSet<>();
-
-    LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
     @Override
     public void onReceive(Object message) throws Exception {

@@ -2,15 +2,16 @@ package simulator.actors;
 
 import java.io.Serializable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
 
 public class Subscriber extends UntypedActor {
     private ActorRef cell;
 
-    LoggingAdapter log = Logging.getLogger(getContext().system(), this);
+    private static Logger log = LoggerFactory.getLogger(Subscriber.class);
 
     @Override
     public void onReceive(Object message) throws Exception {

@@ -5,11 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import org.apache.logging.log4j.core.async.AsyncLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
 import simulator.actors.Subscriber.ConnectToCell;
 import simulator.actors.Subscriber.MakeVoiceCall;
 
@@ -21,7 +23,7 @@ public class Master extends UntypedActor {
     private List<ActorRef> cells = new ArrayList<ActorRef>();
     private Random random = new Random();
 
-    LoggingAdapter log = Logging.getLogger(getContext().system(), this);
+    private static Logger log = LoggerFactory.getLogger(Master.class);
 
     @Override
     public void onReceive(Object message) throws Exception {
@@ -40,9 +42,8 @@ public class Master extends UntypedActor {
         } else if (message instanceof Stop) {
             long stopTime = System.currentTimeMillis();
             log.info("Simulation completed after {} milliseconds.", stopTime - startTime);
+            AsyncLogger.stop();
             getContext().system().terminate();
-//            getContext().system().shutdown();
-//            getContext().system().awaitTermination();
         } else if (message instanceof Ping) {
             WorkStatus.getInstance().removeWork();
             if (WorkStatus.getInstance().isWorkDone()) {

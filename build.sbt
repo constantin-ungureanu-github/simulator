@@ -10,7 +10,6 @@ testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a")
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" % "akka-actor_2.11" % "2.4.0-RC3",
-  "com.typesafe.akka" % "akka-slf4j_2.11" % "2.4.0-RC3",
   "org.apache.logging.log4j" % "log4j-core" % "2.3",
   "org.apache.logging.log4j" % "log4j-api" % "2.3",
   "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.3",
