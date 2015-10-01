@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
+import simulator.actors.Cell.ConnectToNetwork;
 import simulator.actors.Subscriber.ConnectToCell;
 import simulator.actors.Subscriber.MakeVoiceCall;
 
@@ -21,6 +22,7 @@ public class Master extends UntypedActor {
     private long step, startTime, duration, cellsNumber, subscribersNumber;
     private List<ActorRef> subscribers = new ArrayList<ActorRef>();
     private List<ActorRef> cells = new ArrayList<ActorRef>();
+    private ActorRef network;
 
     private static Logger log = LoggerFactory.getLogger(Master.class);
 
@@ -35,8 +37,11 @@ public class Master extends UntypedActor {
             cellsNumber = ((Start) message).getCellsNumber();
             subscribersNumber = ((Start) message).getSubscribersNumber();
 
+            addNetwork();
             addCells();
             addSubscribers();
+
+            initializeCells();
             initializeSubscribers();
         } else if (message instanceof Stop) {
             long stopTime = System.currentTimeMillis();
@@ -70,6 +75,10 @@ public class Master extends UntypedActor {
         return master;
     }
 
+    private void addNetwork() {
+        network = context().system().actorOf(Props.create(Network.class), "network");
+    }
+
     private void addCells() {
         for (long i = 0L; i < cellsNumber; i++)
             cells.add(context().system().actorOf(Props.create(Cell.class), "cell_" + i));
@@ -78,6 +87,11 @@ public class Master extends UntypedActor {
     private void addSubscribers() {
         for (long i = 0L; i < subscribersNumber; i++)
             subscribers.add(context().system().actorOf(Props.create(Subscriber.class), "subscriber_" + i));
+    }
+
+    private void initializeCells() {
+        WorkStatus.getInstance().addWork(cellsNumber);
+        cells.stream().forEach(cell -> cell.tell(ConnectToNetwork.getInstance(), network));
     }
 
     private void initializeSubscribers() {

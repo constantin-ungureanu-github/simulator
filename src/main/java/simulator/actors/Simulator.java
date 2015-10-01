@@ -14,6 +14,6 @@ public class Simulator {
         System.setProperty("Log4jContextSelector", "org.apache.logging.log4j.core.async.AsyncLoggerContextSelector");
         ActorSystem system = ActorSystem.create("simulation");
         ActorRef master = system.actorOf(Props.create(Master.class), "master");
-        master.tell(new Master.Start(Long.parseLong(args[0]), Long.parseLong(args[1]), Long.parseLong(args[2])), master);
+        master.tell(new Master.Start(Long.parseLong(args[0]), Long.parseLong(args[1]), Long.parseLong(args[2])), ActorRef.noSender());
     }
 }
