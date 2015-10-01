@@ -21,3 +21,19 @@ sbt stage universal:packageBin
 // Options to JVM
 
 -J-server -J-XX:+UseNUMA -J-XX:+UseCondCardMark -J-XX:-UseBiasedLocking -J-XX:+UseParallelGC -J-Xss4M -J-Xms16G -J-Xmx32G
+
+
+
+
+TODO
+v0.4
+- separate devices and subscribers
+- add movement
+- add self scheduling
+
+v0.5
+- use futures and pipes
+
+v0.6
+- add network elements of the mobile network for GSM, UMTS, LTE
+- rework input and initializations
