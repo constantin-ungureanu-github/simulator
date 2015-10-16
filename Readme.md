@@ -6,6 +6,10 @@ sbt clean compile
 
 sbt "run 100 1000 100000" [Java Options]
 
+// Run simulator for 10 ticks with 10.000 cells and 25.000.000 subscribers
+
+sbt "run 100 10000 25000000" [Java Options]
+
 // Build Eclipse Project
 
 sbt eclipse:clean eclipse
@@ -20,20 +24,15 @@ sbt stage universal:packageBin
 
 // Options to JVM
 
--J-server -J-XX:+UseNUMA -J-XX:+UseCondCardMark -J-XX:-UseBiasedLocking -J-XX:+UseParallelGC -J-Xss4M -J-Xms16G -J-Xmx32G
-
-
+-J-server -J-XX:+UseNUMA -J-XX:+UseCondCardMark -J-XX:+UseBiasedLocking -J-XX:+UseParallelGC -J-Xss4M -J-Xms28G -J-Xmx28G
 
 
 TODO
-v0.4
+- rework and re-factoring
 - separate devices and subscribers
 - add movement
 - add self scheduling
-
-v0.5
-- use futures and pipes
-
-v0.6
-- add network elements of the mobile network for GSM, UMTS, LTE
+- add random
+- add network elements of the mobile network for 2G, 3G, 4G
+- separate message interfaces (ex. Gn, Gb, IuCS, IuPS etc.)
 - rework input and initializations
