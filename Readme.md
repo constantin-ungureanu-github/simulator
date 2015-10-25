@@ -28,7 +28,7 @@ sbt stage universal:packageBin
 
 
 TODO
-- rework and re-factoring
+- use FSM "uncle Bob" style
 - separate devices and subscribers
 - add movement
 - add self scheduling
