@@ -25,14 +25,3 @@ sbt stage universal:packageBin
 // Options to JVM
 
 -J-server -J-XX:+UseNUMA -J-XX:+UseCondCardMark -J-XX:+UseBiasedLocking -J-XX:+UseParallelGC -J-Xss4M -J-Xms28G -J-Xmx28G
-
-
-TODO
-- use FSM "uncle Bob" style
-- separate devices and subscribers
-- add movement
-- add self scheduling
-- add random
-- add network elements of the mobile network for 2G, 3G, 4G
-- separate message interfaces (ex. Gn, Gb, IuCS, IuPS etc.)
-- rework input and initializations

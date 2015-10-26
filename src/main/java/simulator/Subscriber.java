@@ -69,6 +69,7 @@ public class Subscriber extends UntypedActor {
             } else if (message == NAckConnectToCell) {
                 Master.getMaster().tell(Master.Messages.Ping, getSelf());
             } else {
+                log.error("{}", message);
                 unhandled(message);
             }
         } else if (state == Available) {
@@ -93,13 +94,13 @@ public class Subscriber extends UntypedActor {
             } else if (message == MakeVoiceCall) {
                 getCell().tell(new Cell.Send(getSelf()), getSelf());
             } else if (message == AckMakeVoiceCall) {
-                log.info("{} made voice call using cell {}", getSelf(), sender());
                 Master.getMaster().tell(Master.Messages.Ping, getSelf());
             } else if (message == NAckMakeVoiceCall) {
                 Master.getMaster().tell(Master.Messages.Ping, getSelf());
             } else if (message == ReceiveVoiceCall) {
                 getSender().tell(AckMakeVoiceCall, getSelf());
             } else {
+                log.error("{}", message);
                 unhandled(message);
             }
         }

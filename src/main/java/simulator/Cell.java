@@ -11,10 +11,15 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 
 public class Cell extends UntypedActor {
+    private static Logger log = LoggerFactory.getLogger(Cell.class);
+
     public static enum State {
         Available,
         Unavailable
@@ -62,6 +67,7 @@ public class Cell extends UntypedActor {
                 addSubscriber(sender());
                 getSender().tell(Subscriber.Messages.AckConnectToCell, getSelf());
             } else {
+                log.error("{}", message);
                 unhandled(message);
             }
         } else if (state == Available) {
@@ -76,6 +82,7 @@ public class Cell extends UntypedActor {
             } else if (message instanceof Receive) {
                 ((Receive) message).subscriber.tell(Subscriber.Messages.AckMakeVoiceCall, getSelf());
             } else {
+                log.error("{}", message);
                 unhandled(message);
             }
         }
